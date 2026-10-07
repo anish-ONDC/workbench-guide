@@ -97,7 +97,7 @@
         </div>
         <div>
           <div class="card mapbox">
-            <svg id="mapSvg" viewBox="0 0 985 520" role="img" aria-label="Map of the workbench parts and how they connect"></svg>
+            <svg id="mapSvg" viewBox="0 0 1100 600" role="img" aria-label="Map of the workbench parts and how they connect"></svg>
           </div>
           <p class="swipe">Swipe sideways to see the whole map.</p>
           <div class="legend">
@@ -105,6 +105,7 @@
             <span><i style="border-color:var(--ctl)"></i>Running the test</span>
             <span><i style="border-color:var(--store)"></i>Storage</span>
             <span><i style="border-color:var(--line-strong);border-top-style:dashed"></i>Outside / at build time</span>
+            <span><i style="border-color:var(--faint);border-top-style:dotted"></i>Not covered in this guide</span>
           </div>
         </div>
         <div class="card panel" id="panel">
@@ -273,25 +274,25 @@ map.gN.addEventListener("mouseleave", () => { if (mode === "explore" && !selecte
 /* ---------- map: follow a message ---------- */
 const STEPS = {
   bap: [
-    { t: "Your app sends a signed <code>search</code> to the gateway.", m: [["app-gw"]] },
-    { t: "The gateway reads the first part of the URL and passes the message to the Onix container for that domain and version.", m: [["gw-onix"]] },
-    { t: "Onix finds the test this message belongs to, then checks it: shape, rules, fit, signature. It gets your app's public key from the registry.", m: [["onix-redis"], ["onix-reg"]] },
-    { t: "Onix answers your app straight away: <b>ACK</b> (accepted) or <b>NACK</b> (rejected).", m: [["gw-onix", 1, 1], ["app-gw", 1, 1]] },
+    { t: "Your app sends a signed <code>search</code> to the gateway.", m: [["net-onix"]] },
+    { t: "The gateway reads the first part of the URL and passes the message to the Onix container for that domain and version.", m: [["@onix"]] },
+    { t: "Onix finds the test this message belongs to, then checks it: shape, rules, fit, signature. It gets your app's public key from the registry.", m: [["@onix"]] },
+    { t: "Onix answers your app straight away: <b>ACK</b> (accepted) or <b>NACK</b> (rejected).", m: [["onix-net", 0, 1]] },
     { t: "Onix tells the Recorder. The Recorder adds the message to the test's history in Redis.", m: [["onix-rec"], ["rec-redis"]] },
     { t: "Onix passes the message to the Mock. Your app does not wait for this.", m: [["onix-mock"]] },
     { t: "The Mock reads the history, sees that the next step is its own (<code>on_search</code>), and runs that step's script to build the reply.", m: [["mock-redis"]] },
-    { t: "The Mock sends the reply through the gateway to Onix. Onix signs it and delivers it to your app. Your app answers ACK.", m: [["mock-gw"], ["gw-onix"], ["gw-onix", 1], ["app-gw", 1]] },
+    { t: "The Mock sends the reply through the gateway to Onix. Onix signs it and delivers it to your app. Your app answers ACK.", m: [["mock-onix"], ["onix-net"]] },
     { t: "The Recorder adds the reply to the history. The website asks for the status and shows both steps as done.", m: [["onix-rec"], ["rec-redis"], ["uib-mock"]] }
   ],
   bpp: [
-    { t: "You press <b>Start flow</b>. The UI Backend asks the Mock to begin.", m: [["you-ui"], ["ui-uib"], ["uib-mock"]] },
+    { t: "You press <b>Start flow</b>. The UI Backend asks the Mock to begin.", m: [["fe-uib"], ["uib-mock"]] },
     { t: "The Mock reads the history (empty). The first step, <code>search</code>, belongs to the buyer, and the workbench is the buyer. So the Mock builds it with the step's script.", m: [["mock-redis"]] },
-    { t: "The Mock sends the <code>search</code> through the gateway to Onix.", m: [["mock-gw"], ["gw-onix"]] },
-    { t: "Onix links it to your test, checks its shape, signs it with the workbench key and delivers it to your app. Your app answers ACK.", m: [["onix-redis"], ["gw-onix", 1], ["app-gw", 1]] },
+    { t: "The Mock sends the <code>search</code> through the gateway to Onix.", m: [["mock-onix"]] },
+    { t: "Onix links it to your test, checks its shape, signs it with the workbench key and delivers it to your app. Your app answers ACK.", m: [["onix-net"]] },
     { t: "The Recorder adds the <code>search</code> to the test's history.", m: [["onix-rec"], ["rec-redis"]] },
-    { t: "Your app sends its signed reply, <code>on_search</code>, to the gateway.", m: [["app-gw"], ["gw-onix"]] },
-    { t: "Onix checks your reply: shape, rules, fit, signature. This is the real test of your app.", m: [["onix-redis"], ["onix-reg"]] },
-    { t: "Onix answers your app straight away: <b>ACK</b> or <b>NACK</b>. The Recorder adds the reply to the history.", m: [["gw-onix", 1, 1], ["app-gw", 1, 1], ["onix-rec"], ["rec-redis"]] },
+    { t: "Your app sends its signed reply, <code>on_search</code>, to the gateway.", m: [["net-onix"]] },
+    { t: "Onix checks your reply: shape, rules, fit, signature. This is the real test of your app.", m: [["@onix"]] },
+    { t: "Onix answers your app straight away: <b>ACK</b> or <b>NACK</b>. The Recorder adds the reply to the history.", m: [["onix-net", 0, 1], ["onix-rec"], ["rec-redis"]] },
     { t: "Onix passes the reply to the Mock, which runs the step's own check (L2). The website shows both steps as done.", m: [["onix-mock"], ["uib-mock"]] }
   ]
 };

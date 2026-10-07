@@ -100,121 +100,154 @@ function rail() {
 addEventListener("scroll", rail, { passive: true });
 rail();
 
-/* ---------- the workbench map ---------- */
-const W = 136, H = 50;
+/* ---------- the workbench map ----------
+   Same boxes, names and lines as the architecture diagram on the Confluence page.
+   Reporting Service, Praman Service and monitoring are drawn but marked "not covered". */
+const VBW = 1100, VBH = 600, H = 48;
 const N = {
-  you:   { x: 82,  y: 90,  g: "ctl",   out: true, name: "You", port: "in a browser",
-           job: "The person running the test.", more: [], talks: ["ui"] },
-  ui:    { x: 250, y: 90,  g: "ctl",   name: "Website", port: ":3035",
-           job: "The pages you use to start a test and watch it.", more: ["Scenario Testing: tests from the domain's spec.", "Playground: write your own flow."], talks: ["you", "uib"] },
-  uib:   { x: 410, y: 90,  g: "ctl",   name: "UI Backend", port: ":3034",
-           job: "Works for the website. Creates the test session, starts and moves the flow, and asks for its status every few seconds.",
-           more: ["Saves the session in Redis (48 hours) and a copy in DB Service.", "Gets step lists from Config Service.", "For the Playground, sends messages to Onix's /test/ door for a rules check."], talks: ["ui", "cfg", "mock", "redis", "gw"] },
-  cfg:   { x: 570, y: 90,  g: "ctl",   name: "Config Service", port: ":5556",
-           job: "Reads each domain's spec from DB Service and turns it into step lists for the website and scripts for the Mock.", more: [], talks: ["uib", "db", "mock"] },
-  db:    { x: 740, y: 90,  g: "store", name: "DB Service", port: ":5001",
-           job: "The only way into MongoDB.", more: ["Stores specs, sessions and a full copy of every message.", "The Recorder sends it full messages; UI Backend sends it sessions."], talks: ["cfg", "mongo", "spec"] },
-  mongo: { x: 905, y: 90,  g: "store", name: "MongoDB", port: ":27017",
-           job: "Long-term storage. Only DB Service reads and writes it.", more: [], talks: ["db"] },
-  app:   { x: 82,  y: 290, g: "msg",   out: true, name: "Your app", port: "buyer or seller",
-           job: "The app being tested. It only talks to the gateway.", more: ["It must reply ACK to every message it receives."], talks: ["gw"] },
-  gw:    { x: 250, y: 290, g: "msg",   name: "Gateway", port: ":3032 · nginx",
-           job: "The single address for every message. It reads the first part of the URL path and passes the message to the right Onix container.",
-           more: ["Example: /api-service/ONDC:RET11/1.2.0/… goes to the RET11 1.2.0 container.", "It does not open or check the message."], talks: ["app", "onix", "mock", "uib"] },
-  onix:  { x: 410, y: 290, g: "msg",   name: "Onix", port: "API service",
-           job: "The API service. One container per domain and version. Checks every message from your app, signs the workbench's own messages, delivers them, and reports each one to the Recorder.",
-           more: ["Example container: api-ondcret11-1-2-0 (port 7039 inside Docker).", "Door /seller/: your buyer app sends here.", "Door /buyer/: your seller app sends here.", "Door /mock/: the Mock sends here.", "Door /test/: rules check only, used by the Playground."],
-           talks: ["gw", "mock", "rec", "redis", "reg"] },
-  mock:  { x: 570, y: 290, g: "msg",   name: "Mock", port: ":3031",
+  fe:    { x: 77,   y: 306, w: 130, g: "ctl",   name: "UI Frontend", port: ":3035 · website",
+           job: "The workbench website the tester uses to create a test, start it and watch it.",
+           more: ["Scenario Testing: tests from the domain's spec.", "Playground: write your own flow. It can also import flows from the automation-specifications repo."],
+           talks: ["uib", "specs"] },
+  uib:   { x: 196,  y: 448, w: 130, g: "ctl",   name: "UI Backend", port: ":3034",
+           job: "Works for the UI Frontend. Creates the test session, starts and moves the flow, and asks for its status every few seconds.",
+           more: ["Saves the session in Redis (48 hours) and a copy in DB Service.", "Gets step lists from Config Service.", "For the Playground, sends messages to Onix's /test/ door for a rules check."],
+           talks: ["fe", "onix", "cfg", "mock", "db", "redis", "rep"] },
+  net:   { x: 186,  y: 173, w: 130, g: "msg", out: true, name: "ONDC Network", port: "your app",
+           job: "Real network participants. In a local test, this is the app under test: your buyer or seller app.",
+           more: ["It sends its messages to Onix and receives the workbench's messages from Onix.", "It must reply ACK to every message it receives."],
+           talks: ["onix"] },
+  onix:  { x: 378,  y: 179, w: 170, g: "msg",   name: "Onix Service", port: "API service",
+           job: "Checks every message from your app, signs the workbench's own messages, delivers them, and reports each one to the Transaction Recorder.",
+           more: ["One container per domain and version, for example api-ondcret11-1-2-0.", "In front of it sits a small gateway (nginx, localhost:3032) that passes each message to the right Onix container by the first part of the URL path.", "It checks signatures with public keys from the ONDC Registry.", "Doors: /seller/ (your buyer app sends here), /buyer/ (your seller app sends here), /mock/ (the Mock sends here), /test/ (rules check only)."],
+           talks: ["net", "mock", "rec", "uib", "specs"] },
+  mock:  { x: 544,  y: 226, w: 130, g: "msg",   name: "Mock Service", port: ":3031",
            job: "Plays the other side. It reads the test's history to find the next step, then runs that step's script to build or check a message.",
-           more: ["Sends its messages through the gateway to Onix's /mock/ door.", "Runs scripts with mock-runner-lib.", "Gets scripts from Config Service and keeps a copy in Redis."], talks: ["uib", "onix", "gw", "redis", "cfg"] },
-  redis: { x: 740, y: 290, g: "store", name: "Redis", port: ":6379",
-           job: "Fast, short-term memory shared by all parts.", more: ["Holds sessions, test history, locks, the Mock's notes and cached scripts."], talks: ["uib", "onix", "mock", "rec"] },
-  spec:  { x: 905, y: 290, g: "store", out: true, name: "Spec repo", port: "Git",
-           job: "The automation-specifications repo. One branch per domain and version: message shapes, rules and flows.",
-           more: ["At build time it is turned into an Onix container and pushed to DB Service."], talks: ["db"] },
-  reg:   { x: 250, y: 450, g: "msg",   out: true, name: "ONDC Registry", port: "outside",
-           job: "ONDC's list of participants and their public keys.", more: ["Onix looks up your app's key here to check your signature.", "By default the workbench uses the pre-production registry."], talks: ["onix"] },
-  rec:   { x: 570, y: 450, g: "store", name: "Recorder", port: ":8089 gRPC · :8090",
-           job: "Writes every message into the test's history and frees the lock after a send.",
-           more: ["Onix calls it after each message.", "Also saves the full message to DB Service."], talks: ["onix", "redis", "db"] }
+           more: ["Sends its messages to Onix's /mock/ door.", "Runs scripts with mock-runner-lib.", "Gets scripts from Config Service and keeps a copy in Redis."],
+           talks: ["onix", "uib", "cfg", "redis"] },
+  rec:   { x: 676,  y: 158, w: 170, g: "store", name: "Transaction Recorder", port: ":8089 gRPC · :8090",
+           job: "Writes every message into the test's history in Redis and frees the lock after a send.",
+           more: ["Onix calls it over gRPC after each message.", "Also saves the full message to DB Service."],
+           talks: ["onix", "redis", "db"] },
+  cfg:   { x: 665,  y: 302, w: 140, g: "ctl",   name: "Config Service", port: ":5556",
+           job: "Reads each domain's spec from DB Service and turns it into step lists for the UI and scripts for the Mock.",
+           more: [], talks: ["uib", "mock", "db"] },
+  db:    { x: 838,  y: 301, w: 130, g: "store", name: "DB Service", port: ":5001",
+           job: "The only way into MongoDB. Stores specs, sessions and a full copy of every message.",
+           more: [], talks: ["uib", "cfg", "rec", "specs", "rep", "mongo"] },
+  mongo: { x: 1030, y: 301, w: 130, g: "store", name: "MongoDB", port: ":27017",
+           job: "Long-term storage. Only DB Service reads and writes it.", more: [], talks: ["db"] },
+  redis: { x: 955,  y: 387, w: 130, g: "store", name: "Redis Cache", port: ":6379",
+           job: "Fast, short-term memory shared by the services: sessions, test history, locks, the Mock's notes and cached scripts.",
+           more: ["Onix also reads and writes it, for example to find which test a message belongs to."],
+           talks: ["uib", "mock", "rec", "mon"] },
+  specs: { x: 672,  y: 64,  w: 210, g: "store", out: true, name: "automation-specifications", port: "Git",
+           job: "The spec repo. One branch per domain and version: message shapes, rules and flows.",
+           more: ["At build time it is turned into an Onix container and pushed to DB Service."],
+           talks: ["onix", "db", "fe"] },
+  rep:   { x: 390,  y: 531, w: 150, g: "skip",  name: "Reporting Service", port: "not covered here",
+           job: "Builds test reports. Not covered in this guide.", more: [], talks: ["uib", "db", "pra"] },
+  pra:   { x: 560,  y: 545, w: 140, g: "skip",  name: "Praman Service", port: "not covered here",
+           job: "Report checks for some domains. Not covered in this guide.", more: [], talks: ["rep"] },
+  mon:   { x: 720,  y: 545, w: 150, g: "skip",  name: "monitoring", port: "not covered here",
+           job: "Six monitoring services and stores. Not covered in this guide.", more: [], talks: ["redis"] }
 };
+// [id, from, to, group, path, dashed?, label?]
 const E = [
-  ["you-ui",   "you", "ui",  "ctl",   "M150,90 H182"],
-  ["ui-uib",   "ui",  "uib", "ctl",   "M318,90 H342"],
-  ["uib-cfg",  "uib", "cfg", "ctl",   "M478,90 H502"],
-  ["cfg-db",   "cfg", "db",  "store", "M638,90 H672"],
-  ["db-mongo", "db",  "mongo","store", "M808,90 H837"],
-  ["uib-mock", "uib", "mock","ctl",   "M425,115 V195 H550 V265"],
-  ["uib-redis","uib", "redis","ctl",  "M450,115 V165 H725 V265"],
-  ["mock-cfg", "mock","cfg", "ctl",   "M605,265 V115"],
-  ["uib-gw",   "uib", "gw",  "ctl",   "M395,115 V210 H235 V265"],
-  ["app-gw",   "app", "gw",  "msg",   "M150,290 H182"],
-  ["gw-onix",  "gw",  "onix","msg",   "M318,290 H342"],
-  ["onix-mock","onix","mock","msg",   "M478,290 H502"],
-  ["mock-gw",  "mock","gw",  "msg",   "M525,265 V230 H265 V265"],
-  ["mock-redis","mock","redis","store","M638,290 H672"],
-  ["onix-reg", "onix","reg", "msg",   "M380,315 V375 H250 V425", true],
-  ["onix-rec", "onix","rec", "msg",   "M430,315 V450 H502"],
-  ["onix-redis","onix","redis","store","M455,315 V395 H720 V315"],
-  ["rec-redis","rec", "redis","store","M638,450 H748 V315"],
-  ["spec-db",  "spec","db",  "store", "M905,265 V150 H770 V115", true]
+  ["fe-specs",  "fe",   "specs", "ctl",   "M77,282 V64 H567"],
+  ["fe-uib",    "fe",   "uib",   "ctl",   "M77,330 V448 H131"],
+  ["net-onix",  "net",  "onix",  "msg",   "M251,163 H293"],
+  ["onix-net",  "onix", "net",   "msg",   "M293,186 H251"],
+  ["uib-onix",  "uib",  "onix",  "ctl",   "M261,436 H274 V196 H293"],
+  ["onix-rec",  "onix", "rec",   "msg",   "M463,163 H591", false, "grpc"],
+  ["onix-specs","onix", "specs", "store", "M430,155 V112 H660 V88", true, "git"],
+  ["onix-mock", "onix", "mock",  "msg",   "M440,203 V216 H479"],
+  ["mock-onix", "mock", "onix",  "msg",   "M479,238 H410 V203"],
+  ["uib-mock",  "uib",  "mock",  "ctl",   "M261,456 H530 V250"],
+  ["uib-cfg",   "uib",  "cfg",   "ctl",   "M261,440 H285 V302 H595"],
+  ["uib-db",    "uib",  "db",    "ctl",   "M261,464 H800 V325"],
+  ["uib-rep",   "uib",  "rep",   "skip",  "M196,472 V531 H315"],
+  ["uib-redis", "uib",  "redis", "store", "M226,472 V590 H955 V411", false, "redis"],
+  ["mock-cfg",  "mock", "cfg",   "ctl",   "M609,236 H640 V278"],
+  ["mock-redis","mock", "redis", "store", "M609,214 H930 V363", false, "redis"],
+  ["rec-redis", "rec",  "redis", "store", "M761,150 H945 V363", false, "redis"],
+  ["rec-db",    "rec",  "db",    "store", "M761,172 H790 V277"],
+  ["specs-db",  "specs","db",    "store", "M777,52 H860 V277"],
+  ["cfg-db",    "cfg",  "db",    "store", "M735,302 H773"],
+  ["db-mongo",  "db",   "mongo", "store", "M903,301 H965", false, "mongo"],
+  ["rep-db",    "rep",  "db",    "skip",  "M465,515 H815 V325"],
+  ["rep-pra",   "rep",  "pra",   "skip",  "M465,545 H490"],
+  ["mon-redis", "mon",  "redis", "skip",  "M795,545 H920 V411", false, "redis"]
 ];
 
 function mountMap(svg) {
-  const gE = document.createElementNS(NS, "g"), gN = document.createElementNS(NS, "g");
-  svg.innerHTML =
-    '<rect class="zone" x="6" y="18" width="152" height="490" rx="14"/><text class="zone-t" x="18" y="40">OUTSIDE</text>' +
-    '<rect class="zone" x="170" y="18" width="808" height="490" rx="14"/><text class="zone-t" x="184" y="40">THE WORKBENCH (DOCKER)</text>';
-  svg.appendChild(gE); svg.appendChild(gN);
+  const gE = document.createElementNS(NS, "g"), gN = document.createElementNS(NS, "g"), gL = document.createElementNS(NS, "g");
+  svg.setAttribute("viewBox", "0 0 " + VBW + " " + VBH);
+  svg.innerHTML = "";
+  svg.appendChild(gE); svg.appendChild(gL); svg.appendChild(gN);
   const pkt = document.createElementNS(NS, "circle");
   pkt.setAttribute("class", "pkt"); pkt.setAttribute("r", "8"); pkt.setAttribute("cx", "-50"); pkt.setAttribute("cy", "-50");
   svg.appendChild(pkt);
   const edgeEl = {}, nodeEl = {};
-  E.forEach(([id, a, b, g, d, dash]) => {
+  E.forEach(([id, a, b, g, d, dash, label]) => {
     const p = document.createElementNS(NS, "path");
     p.setAttribute("d", d); p.setAttribute("class", "edge e-" + g + (dash ? " dash" : ""));
     p.dataset.id = id; p.dataset.a = a; p.dataset.b = b;
     gE.appendChild(p); edgeEl[id] = p;
+    if (label) {
+      const t = document.createElementNS(NS, "text");
+      t.setAttribute("class", "elabel"); t.dataset.for = id;
+      t.textContent = label;
+      gL.appendChild(t);
+    }
   });
   Object.entries(N).forEach(([id, n]) => {
-    const g = document.createElementNS(NS, "g");
+    const w = n.w || 130, g = document.createElementNS(NS, "g");
     g.setAttribute("class", "node g-" + n.g + (n.out ? " g-out" : ""));
     g.dataset.id = id;
-    g.innerHTML = '<rect x="' + (n.x - W / 2) + '" y="' + (n.y - H / 2) + '" width="' + W + '" height="' + H + '" rx="12"/>' +
+    g.innerHTML = '<rect x="' + (n.x - w / 2) + '" y="' + (n.y - H / 2) + '" width="' + w + '" height="' + H + '" rx="12"/>' +
       '<text class="nm" x="' + n.x + '" y="' + (n.y - 3) + '" text-anchor="middle">' + n.name + "</text>" +
       '<text class="pt" x="' + n.x + '" y="' + (n.y + 14) + '" text-anchor="middle">' + n.port + "</text>";
     gN.appendChild(g); nodeEl[id] = g;
   });
+  // place edge labels at the middle of their line (needs the path in the DOM)
+  requestAnimationFrame(() => {
+    gL.querySelectorAll(".elabel").forEach(t => {
+      const p = edgeEl[t.dataset.for], L = p.getTotalLength(), m = p.getPointAtLength(L / 2);
+      t.setAttribute("x", m.x); t.setAttribute("y", m.y - 6); t.setAttribute("text-anchor", "middle");
+    });
+  });
   let token = 0, camToken = 0;
+  const labels = () => gL.querySelectorAll(".elabel");
   const api = {
     svg, gN, edgeEl, nodeEl, pkt,
     clear() {
       Object.values(nodeEl).forEach(n => n.classList.remove("sel", "dim"));
       Object.values(edgeEl).forEach(e => e.classList.remove("hot", "dim", "flow"));
+      labels().forEach(t => t.classList.remove("dim"));
     },
-    // show only the edges of a step, dim the rest, and run the dot along them
+    // a step: ["edgeId", reverse?, answerColour?] moves a dot along a line; ["@nodeId"] only lights up a box
     showMoves(moves) {
       api.clear();
-      const used = new Set();
-      moves.forEach(([id]) => { edgeEl[id].classList.add("hot"); used.add(edgeEl[id].dataset.a); used.add(edgeEl[id].dataset.b); });
+      const used = new Set(api.usedNodes(moves));
+      moves.forEach(([id]) => { if (id[0] !== "@") edgeEl[id].classList.add("hot"); });
       Object.values(edgeEl).forEach(e => { if (!e.classList.contains("hot")) e.classList.add("dim"); });
+      labels().forEach(t => t.classList.toggle("dim", !edgeEl[t.dataset.for].classList.contains("hot")));
       Object.keys(nodeEl).forEach(k => nodeEl[k].classList.toggle("dim", !used.has(k)));
-      api.animate(moves);
+      api.animate(moves.filter(([id]) => id[0] !== "@"));
     },
     stop() { token++; pkt.setAttribute("cx", -50); },
-    // move the "camera" (viewBox) so the given parts fill the view
     focus(ids, minW = 560) {
       const pts = ids.map(id => N[id]).filter(Boolean);
       if (!pts.length) return;
-      let x0 = Math.min(...pts.map(n => n.x)) - W / 2 - 40, x1 = Math.max(...pts.map(n => n.x)) + W / 2 + 40;
+      let x0 = Math.min(...pts.map(n => n.x - (n.w || 130) / 2)) - 40, x1 = Math.max(...pts.map(n => n.x + (n.w || 130) / 2)) + 40;
       let y0 = Math.min(...pts.map(n => n.y)) - H / 2 - 50, y1 = Math.max(...pts.map(n => n.y)) + H / 2 + 50;
-      const ratio = 520 / 985;
+      const ratio = VBH / VBW;
       let w = Math.max(minW, x1 - x0), h = Math.max(w * ratio, y1 - y0); w = Math.max(w, h / ratio);
       const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-      let tx = Math.min(Math.max(0, cx - w / 2), Math.max(0, 985 - w)), ty = Math.min(Math.max(0, cy - h / 2), Math.max(0, 520 - h));
-      const to = [tx, ty, Math.min(w, 985), Math.min(h, 520)];
-      const from = (svg.getAttribute("viewBox") || "0 0 985 520").split(/\s+/).map(Number);
+      const tx = Math.min(Math.max(0, cx - w / 2), Math.max(0, VBW - w)), ty = Math.min(Math.max(0, cy - h / 2), Math.max(0, VBH - h));
+      const to = [tx, ty, Math.min(w, VBW), Math.min(h, VBH)];
+      const from = (svg.getAttribute("viewBox") || ("0 0 " + VBW + " " + VBH)).split(/\s+/).map(Number);
       if (reduced) { svg.setAttribute("viewBox", to.join(" ")); return; }
       const my = ++camToken, t0 = performance.now();
       (function f(t) {
@@ -226,7 +259,10 @@ function mountMap(svg) {
     },
     usedNodes(moves) {
       const u = new Set();
-      moves.forEach(([id]) => { u.add(edgeEl[id].dataset.a); u.add(edgeEl[id].dataset.b); });
+      moves.forEach(([id]) => {
+        if (id[0] === "@") { u.add(id.slice(1)); return; }
+        u.add(edgeEl[id].dataset.a); u.add(edgeEl[id].dataset.b);
+      });
       return [...u];
     },
     animate(moves) {

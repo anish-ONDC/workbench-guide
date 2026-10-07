@@ -291,7 +291,7 @@ a.card.go:hover{transform:translateY(-2px);border-color:var(--req)}
 .ctrlbar .count{margin-left:auto;font:500 12px var(--mono);color:var(--muted)}
 .side-col{display:flex;flex-direction:column;gap:14px;position:sticky;top:76px}
 .mini{padding:8px}
-.mini svg{display:block;width:100%;height:auto;aspect-ratio:985/520}
+.mini svg{display:block;width:100%;height:auto;aspect-ratio:1100/600}
 .mem{padding:14px 16px}
 .mem h4{margin:0 0 8px;font-size:15px;display:flex;justify-content:space-between;gap:8px}
 .mem h4 span{font:500 11px var(--mono);color:var(--muted)}
@@ -335,3 +335,11 @@ button.cmp-row:hover>span:last-child::after{content:" →";color:var(--req)}
 .cmp-head{cursor:default;font:600 12px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
 .cmp-head>span:last-child{font-weight:600;color:var(--req)}
 @media (max-width:720px){.cmp-row{grid-template-columns:1fr;gap:2px}.cmp-head{display:none}.cmp-row>span:nth-child(2)::before{content:"Scenario Testing: ";color:var(--faint)}.cmp-row>span:nth-child(3)::before{content:"Playground: ";color:var(--req);font-weight:400}}
+
+/* map: Confluence-matching extras */
+.elabel{font:500 11px var(--mono);fill:var(--muted);paint-order:stroke;stroke:var(--paper);stroke-width:4px;transition:opacity .25s}
+.elabel.dim{opacity:.2}
+.node.g-skip rect{stroke:var(--faint);stroke-dasharray:4 4;fill:var(--bg)}
+.node.g-skip .nm{fill:var(--muted)}
+.node.g-skip .pt{fill:var(--faint)}
+.edge.e-skip{stroke:var(--line-strong);stroke-dasharray:4 4;opacity:.7}
