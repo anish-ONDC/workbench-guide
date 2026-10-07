@@ -85,7 +85,7 @@
 
         <div class="side-col">
           <div class="card mini">
-            <svg id="mapSvg" viewBox="0 0 1100 600" role="img" aria-label="Workbench map with the parts used in this step"></svg>
+            <svg id="mapSvg" viewBox="0 0 1100 500" role="img" aria-label="Workbench map with the parts used in this step"></svg>
           </div>
           <div class="card mem">
             <h4>What is stored now <span>changes light up</span></h4>
@@ -195,7 +195,7 @@ const STEPS = [
     lines: ["Same as the seller test, steps 6 to 9: the Mock sends the search through the gateway to Onix.",
             "Onix links the new " + T("txn", "transaction") + " (<code>4ce8d04a…</code>) to the session, signs the message and delivers it to the app. The app checks the signature and answers ACK.",
             "The Recorder adds the search to the history and sets the lock back to AVAILABLE."],
-    m: [["mock-onix"], ["onix-net"], ["onix-rec"], ["rec-redis"]],
+    m: [["onix-mock", 1], ["net-onix", 1], ["onix-rec"], ["rec-redis"]],
     mem: { session: "BPP · :4200 · PLAYGROUND-FLOW · signature check off · + transaction 4ce8d04a…", hist: "1 message: search (ACK)", lock: "A" },
     d: [["search", P.search, "The search the app received."], ["Lock changes", P.lockSets]] },
   { who: "app", title: "The app sends on_search. The signature check is skipped",
@@ -203,7 +203,7 @@ const STEPS = [
             "Onix runs the shape, rules and fit checks as usual.",
             "It skips the " + T("signature", "signature") + " check, because this session was created with it turned off. So there is no registry lookup.",
             "The app gets an ACK."],
-    m: [["net-onix"], ["onix-net", 0, 1]],
+    m: [["net-onix"], ["net-onix", 1, 1]],
     d: [["ACK", P.onSearchAck]] },
   { who: "wb", title: "Onix hands it to the Mock's Playground address",
     lines: ["The Recorder adds <code>on_search</code> to the history.",

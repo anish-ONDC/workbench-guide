@@ -70,7 +70,7 @@
 
         <div class="side-col">
           <div class="card mini">
-            <svg id="mapSvg" viewBox="0 0 1100 600" role="img" aria-label="Workbench map with the parts used in this step"></svg>
+            <svg id="mapSvg" viewBox="0 0 1100 500" role="img" aria-label="Workbench map with the parts used in this step"></svg>
           </div>
           <div class="card mem">
             <h4>What Redis holds now <span>changes light up</span></h4>
@@ -161,7 +161,7 @@ const STEPS = [
   { who: "wb", title: "Your app gets an ACK",
     lines: ["About 150 ms after sending.",
             T("ack", "ACK") + " only means: received and valid. The real answer comes later, as a separate message to your app."],
-    m: [["onix-net", 0, 1]],
+    m: [["net-onix", 1, 1]],
     d: [["ACK", B.searchAck, "The reply to your app's search."]] },
   { who: "wb", title: "The Recorder writes it down",
     lines: ["Onix sends the message to the Recorder.",
@@ -184,7 +184,7 @@ const STEPS = [
     lines: ["The next step, <code>on_search</code>, belongs to the seller: the workbench.",
             "Its script needs <code>area_code</code>, which a person must type. So nothing is sent yet.",
             "The flow status becomes INPUT-REQUIRED."],
-    m: [["mock-onix", 0, 1]],
+    m: [["onix-mock", 1, 1]],
     d: [["Mock's answer", B.needsInput, "This answer goes back to Onix, which only logs it."]] },
   { who: "wb", title: "The website shows a form",
     lines: ["The website asks for the status every few seconds (UI Backend → Mock).",
@@ -209,13 +209,13 @@ const STEPS = [
   { who: "wb", title: "The Mock sends it through Onix",
     lines: ["The Mock posts it to the gateway's <code>/mock/</code> door, with your app's URL, the flow id and the session id.",
             "Onix checks its shape and signs it with the workbench key."],
-    m: [["mock-onix"]],
+    m: [["onix-mock", 1]],
     d: [["Workbench signature", B.onSearchAuth, "The Authorization header Onix added. keyId starts with api-service:80."]] },
   { who: "app", title: "Your app receives on_search and answers ACK",
     lines: ["Onix delivers it to <code>http://host.docker.internal:4100/on_search</code> and waits for your app's answer.",
             "Your app checks the workbench's signature: valid. " + B.onSearchItems + " items arrived.",
             "Your app answers ACK."],
-    m: [["onix-net"], ["net-onix", 0, 1]],
+    m: [["net-onix", 1], ["net-onix", 0, 1]],
     d: [["Your app's ACK", B.onSearchAck]] },
   { who: "wb", title: "The Recorder writes it down and frees the lock",
     lines: ["<code>on_search</code> is added to the history.",
