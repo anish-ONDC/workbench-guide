@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workbench: How It Works</title>
+<meta name="description" content="How the ONDC Protocol Workbench is built: the parts, how one message moves, the checks, and where data is kept.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><i class="brand-mark" aria-hidden="true"></i><span>Protocol Workbench</span></div>
+    <nav class="pages" aria-label="Guide pages">
+      <a href="index.html" aria-current="page">How it works</a>
+      <a href="buyer.html">Buyer test</a>
+      <a href="seller.html">Seller test</a>
+      <a href="playground.html">Playground</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"></button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="rail" aria-label="On this page">
+    <ol id="rail">
+      <span class="fill" id="railFill"></span>
+      <li><a href="#start">What it is</a></li>
+      <li><a href="#map">The parts</a></li>
+      <li><a href="#checks">The checks</a></li>
+      <li><a href="#memory">Where data is kept</a></li>
+      <li><a href="#next">What's next</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <!-- 1. What it is -->
+    <section id="start" class="hero">
+      <p class="kicker">ONDC Protocol Workbench</p>
+      <h1>Test your ONDC app without a real partner.</h1>
+      <p class="lead">You bring your app. The workbench plays the other side. It checks every message your app sends and replies the way a real partner would.</p>
+      <p class="setup"><b>Setup used on this site:</b> domain <code>ONDC:RET11</code> · version <code>1.2.0</code> · use case <code>F&amp;B</code> · flow <code>Search_and_Custom_Menu_(Full_Catalog_City)</code> · the workbench running on a local machine.</p>
+
+      <div class="role rv">
+        <div class="card ask">
+          <p>My app is a…</p>
+          <div class="seg" role="group" aria-label="Your app's role">
+            <button type="button" data-role="bap" aria-pressed="true">Buyer app</button>
+            <button type="button" data-role="bpp" aria-pressed="false">Seller app</button>
+          </div>
+          <div class="duo" aria-live="polite">
+            <div class="actor you"><small>your app</small><strong id="youRole">Buyer app</strong></div>
+            <div class="wire" aria-hidden="true">
+              <svg viewBox="0 0 86 46">
+                <line x1="2" y1="15" x2="84" y2="15" stroke="var(--req)" stroke-width="2" stroke-dasharray="4 4"/>
+                <line x1="2" y1="31" x2="84" y2="31" stroke="var(--res)" stroke-width="2" stroke-dasharray="4 4"/>
+                <circle id="wA" r="5" cy="15" cx="4" fill="var(--req)"/>
+                <circle id="wB" r="5" cy="31" cx="82" fill="var(--res)"/>
+              </svg>
+            </div>
+            <div class="actor wb"><small>workbench plays</small><strong id="wbRole">Seller app</strong></div>
+          </div>
+          <p class="note" style="margin:16px 0 0"><span style="color:var(--req)">●</span> message from your app &nbsp; <span style="color:var(--res)">●</span> message to your app. Watch which one moves first.</p>
+        </div>
+        <ul class="card facts" id="facts" aria-live="polite"></ul>
+      </div>
+    </section>
+
+    <!-- 2. The parts -->
+    <section id="map">
+      <p class="kicker">The parts</p>
+      <h2>Fourteen boxes, one job each.</h2>
+      <p class="lead">Click a box to see what it does and who it talks to. Or press <b>Follow a message</b> to watch one message travel through the workbench.</p>
+
+      <div class="mode">
+        <div class="seg" role="group" aria-label="Map mode">
+          <button type="button" data-mode="explore" aria-pressed="true">Explore the parts</button>
+          <button type="button" data-mode="play" aria-pressed="false">Follow a message</button>
+        </div>
+        <span class="note">Showing: <b id="modeRole">buyer app</b> test. Change it at the top of the page.</span>
+      </div>
+
+      <div class="mapgrid rv">
+        <div id="playPanel" class="card player playbar" hidden>
+          <span class="stepnum" id="sNum"></span>
+          <div class="steptext" id="sText" aria-live="polite"></div>
+          <div class="ctrls">
+            <button class="btn" id="sBack" type="button">← Back</button>
+            <button class="btn main" id="sNext" type="button">Next →</button>
+            <button class="btn" id="sAuto" type="button">▶ Play all</button>
+          </div>
+          <div class="ticks" id="sTicks"></div>
+        </div>
+        <div>
+          <div class="card mapbox">
+            <svg id="mapSvg" viewBox="0 0 985 520" role="img" aria-label="Map of the workbench parts and how they connect"></svg>
+          </div>
+          <p class="swipe">Swipe sideways to see the whole map.</p>
+          <div class="legend">
+            <span><i style="border-color:var(--req)"></i>ONDC messages</span>
+            <span><i style="border-color:var(--ctl)"></i>Running the test</span>
+            <span><i style="border-color:var(--store)"></i>Storage</span>
+            <span><i style="border-color:var(--line-strong);border-top-style:dashed"></i>Outside / at build time</span>
+          </div>
+        </div>
+        <div class="card panel" id="panel">
+          <p class="empty" id="panelEmpty">Click any box on the map.</p>
+          <div id="panelBody" hidden>
+            <div>
+              <span class="tag" id="pTag"></span>
+              <h3 id="pName"></h3>
+              <p id="pJob"></p>
+            </div>
+            <div class="side">
+              <ul id="pMore"></ul>
+              <p style="margin-bottom:0"><b>Talks to</b></p>
+              <div class="chips" id="pTalks"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. The checks -->
+    <section id="checks">
+      <p class="kicker">The checks</p>
+      <h2>Every message from your app passes five gates.</h2>
+      <p class="lead">Onix runs them in this order. The first gate that fails stops the message, and your app gets a <button class="term" data-t="nack">NACK</button>. Pick a message and send it.</p>
+
+      <div class="pick" id="pick" role="group" aria-label="Choose a message to send">
+        <button type="button" data-case="good" aria-pressed="true"><b>A correct message</b><small>Signed and valid</small></button>
+        <button type="button" data-case="notest"><b>Nobody pressed Start</b><small>No test is waiting</small></button>
+        <button type="button" data-case="shape"><b>Wrong shape</b><small>Text where a list item should be</small></button>
+        <button type="button" data-case="rule"><b>Breaks a rule</b><small>Date without milliseconds</small></button>
+        <button type="button" data-case="sign"><b>Wrong signature</b><small>Signed with another key</small></button>
+      </div>
+
+      <div class="card track rv">
+        <div class="gates" id="gates">
+          <span class="runner" id="runner" aria-hidden="true"></span>
+          <div class="gate"><span class="n">1</span><b>Is a test waiting?</b><span>Links it to your session</span></div>
+          <div class="gate"><span class="n">2</span><b>Right shape?</b><span>Fields and types</span></div>
+          <div class="gate"><span class="n">3</span><b>Follows the rules?</b><span><button class="term" data-t="l1">L1 rules</button></span></div>
+          <div class="gate"><span class="n">4</span><b>Fits this test?</b><span>Right step, on time</span></div>
+          <div class="gate"><span class="n">5</span><b>Real signature?</b><span>Key from the <button class="term" data-t="registry">registry</button></span></div>
+          <div class="gate ack"><span class="n">✓</span><b><button class="term" data-t="ack">ACK</button></b><span>Saved and recorded</span></div>
+        </div>
+        <div class="answer" id="answer" aria-live="polite"></div>
+        <p class="after">After an <b>ACK</b>, Onix passes the message to the Mock. The Mock then runs the step's own check, the <button class="term" data-t="l2">L2 check</button>.</p>
+      </div>
+    </section>
+
+    <!-- 4. Memory -->
+    <section id="memory">
+      <p class="kicker">Where data is kept</p>
+      <h2>Short-term in Redis. Long-term in MongoDB.</h2>
+      <p class="lead">Click a box to see who writes it, who reads it, and how long it lasts.</p>
+      <div class="shelves rv" id="shelves">
+        <div class="card shelf">
+          <h3>Redis <span>short-term · port 6379</span></h3>
+          <div id="redisList"></div>
+        </div>
+        <div class="card shelf">
+          <h3>MongoDB <span>long-term · through DB Service</span></h3>
+          <div id="mongoList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Next -->
+    <section id="next">
+      <p class="kicker">What's next</p>
+      <h2>Three full walk-throughs, step by step.</h2>
+      <div class="next">
+        <a class="card go" href="buyer.html"><b>Buyer app test →</b><small>Your app sends search, the workbench replies with on_search. Every step, with real data.</small></a>
+        <a class="card go" href="seller.html"><b>Seller app test →</b><small>The workbench sends search, your app replies with on_search. Every step, with real data.</small></a>
+        <a class="card go" href="playground.html"><b>Playground →</b><small>Write your own flow in the browser, then run it against a real app.</small></a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/common.js"></script>
+<script>
+(() => {
+"use strict";
+const { $, $$, store, reduced, N, mountMap } = WB;
+
+/* ---------- role ---------- */
+let role = store.get("wb-role") === "bpp" ? "bpp" : "bap";
+const ROLE = {
+  bap: {
+    you: "Buyer app", wb: "Seller app",
+    facts: [
+      ["Who speaks first", "Your app"],
+      ["Your app sends to", "The <code>/seller/</code> door<small class=\"mono\">localhost:3032/<wbr>api-service/<wbr>ONDC:RET11/<wbr>1.2.0/<wbr>seller/<wbr>search</small>"],
+      ["What is tested", "The requests your app sends, like <code>search</code>, <code>select</code>, <code>init</code>"],
+      ["Start flow", "Makes the workbench wait for your app's first message"]
+    ]
+  },
+  bpp: {
+    you: "Seller app", wb: "Buyer app",
+    facts: [
+      ["Who speaks first", "The workbench"],
+      ["Your app sends to", "The <code>/buyer/</code> door<small class=\"mono\">localhost:3032/<wbr>api-service/<wbr>ONDC:RET11/<wbr>1.2.0/<wbr>buyer/<wbr>on_search</small>"],
+      ["What is tested", "The replies your app sends, like <code>on_search</code>, <code>on_select</code>"],
+      ["Start flow", "Makes the workbench send the first message to your app (after you fill any form it needs)"]
+    ]
+  }
+};
+function renderRole() {
+  const R = ROLE[role];
+  $("#youRole").innerHTML = '<span class="flip">' + R.you + "</span>";
+  $("#wbRole").innerHTML = '<span class="flip">' + R.wb + "</span>";
+  $("#facts").innerHTML = R.facts.map(f => '<li><span class="k">' + f[0] + '</span><span class="v flip">' + f[1] + "</span></li>").join("");
+  $("#modeRole").textContent = role === "bap" ? "buyer app" : "seller app";
+  $$('.seg [data-role]').forEach(b => b.setAttribute("aria-pressed", String(b.dataset.role === role)));
+  wireStart();
+  if (mode === "play") go(0);
+}
+$$('.seg [data-role]').forEach(b => b.addEventListener("click", () => { role = b.dataset.role; store.set("wb-role", role); renderRole(); }));
+
+let wireRAF = 0;
+function wireStart() {
+  cancelAnimationFrame(wireRAF);
+  const a = $("#wA"), b = $("#wB");
+  if (reduced) { a.setAttribute("cx", 44); b.setAttribute("cx", 44); return; }
+  const t0 = performance.now(), youFirst = role === "bap";
+  (function tick(t) {
+    const p = ((t - t0) / 2400) % 1, p1 = Math.min(1, p * 2), p2 = Math.max(0, p * 2 - 1);
+    const first = youFirst ? p1 : p2, second = youFirst ? p2 : p1;
+    a.setAttribute("cx", 4 + 78 * first); b.setAttribute("cx", 82 - 78 * second);
+    a.style.opacity = first > 0 && first < 1 ? 1 : .25; b.style.opacity = second > 0 && second < 1 ? 1 : .25;
+    wireRAF = requestAnimationFrame(tick);
+  })(t0);
+}
+
+/* ---------- map: explore ---------- */
+const map = mountMap($("#mapSvg"));
+Object.entries(map.nodeEl).forEach(([id, g]) => {
+  g.setAttribute("tabindex", "0"); g.setAttribute("role", "button"); g.setAttribute("aria-label", N[id].name);
+});
+let mode = "explore", selected = null;
+function selectNode(id) {
+  if (mode !== "explore") return;
+  selected = id; map.clear();
+  const n = N[id], linked = new Set([id]);
+  Object.values(map.edgeEl).forEach(e => {
+    if (e.dataset.a === id || e.dataset.b === id) { e.classList.add("hot", "flow"); linked.add(e.dataset.a); linked.add(e.dataset.b); }
+    else e.classList.add("dim");
+  });
+  Object.keys(map.nodeEl).forEach(k => { if (!linked.has(k)) map.nodeEl[k].classList.add("dim"); });
+  map.nodeEl[id].classList.add("sel");
+  $("#panelEmpty").hidden = true; $("#panelBody").hidden = false;
+  $("#pTag").textContent = n.port; $("#pName").textContent = n.name; $("#pJob").textContent = n.job;
+  $("#pMore").innerHTML = n.more.map(m => "<li>" + m + "</li>").join(""); $("#pMore").hidden = !n.more.length;
+  $("#pTalks").innerHTML = n.talks.map(t => '<button class="chip" type="button" data-go="' + t + '">' + N[t].name + "</button>").join("");
+}
+map.gN.addEventListener("click", e => { const g = e.target.closest(".node"); if (g) selectNode(g.dataset.id); });
+map.gN.addEventListener("keydown", e => { const g = e.target.closest(".node"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); selectNode(g.dataset.id); } });
+$("#pTalks").addEventListener("click", e => { const c = e.target.closest("[data-go]"); if (c) selectNode(c.dataset.go); });
+map.gN.addEventListener("mouseover", e => {
+  if (mode !== "explore" || selected) return;
+  const g = e.target.closest(".node"); if (!g) return;
+  Object.values(map.edgeEl).forEach(x => x.classList.toggle("hot", x.dataset.a === g.dataset.id || x.dataset.b === g.dataset.id));
+});
+map.gN.addEventListener("mouseleave", () => { if (mode === "explore" && !selected) Object.values(map.edgeEl).forEach(x => x.classList.remove("hot")); });
+
+/* ---------- map: follow a message ---------- */
+const STEPS = {
+  bap: [
+    { t: "Your app sends a signed <code>search</code> to the gateway.", m: [["app-gw"]] },
+    { t: "The gateway reads the first part of the URL and passes the message to the Onix container for that domain and version.", m: [["gw-onix"]] },
+    { t: "Onix finds the test this message belongs to, then checks it: shape, rules, fit, signature. It gets your app's public key from the registry.", m: [["onix-redis"], ["onix-reg"]] },
+    { t: "Onix answers your app straight away: <b>ACK</b> (accepted) or <b>NACK</b> (rejected).", m: [["gw-onix", 1, 1], ["app-gw", 1, 1]] },
+    { t: "Onix tells the Recorder. The Recorder adds the message to the test's history in Redis.", m: [["onix-rec"], ["rec-redis"]] },
+    { t: "Onix passes the message to the Mock. Your app does not wait for this.", m: [["onix-mock"]] },
+    { t: "The Mock reads the history, sees that the next step is its own (<code>on_search</code>), and runs that step's script to build the reply.", m: [["mock-redis"]] },
+    { t: "The Mock sends the reply through the gateway to Onix. Onix signs it and delivers it to your app. Your app answers ACK.", m: [["mock-gw"], ["gw-onix"], ["gw-onix", 1], ["app-gw", 1]] },
+    { t: "The Recorder adds the reply to the history. The website asks for the status and shows both steps as done.", m: [["onix-rec"], ["rec-redis"], ["uib-mock"]] }
+  ],
+  bpp: [
+    { t: "You press <b>Start flow</b>. The UI Backend asks the Mock to begin.", m: [["you-ui"], ["ui-uib"], ["uib-mock"]] },
+    { t: "The Mock reads the history (empty). The first step, <code>search</code>, belongs to the buyer, and the workbench is the buyer. So the Mock builds it with the step's script.", m: [["mock-redis"]] },
+    { t: "The Mock sends the <code>search</code> through the gateway to Onix.", m: [["mock-gw"], ["gw-onix"]] },
+    { t: "Onix links it to your test, checks its shape, signs it with the workbench key and delivers it to your app. Your app answers ACK.", m: [["onix-redis"], ["gw-onix", 1], ["app-gw", 1]] },
+    { t: "The Recorder adds the <code>search</code> to the test's history.", m: [["onix-rec"], ["rec-redis"]] },
+    { t: "Your app sends its signed reply, <code>on_search</code>, to the gateway.", m: [["app-gw"], ["gw-onix"]] },
+    { t: "Onix checks your reply: shape, rules, fit, signature. This is the real test of your app.", m: [["onix-redis"], ["onix-reg"]] },
+    { t: "Onix answers your app straight away: <b>ACK</b> or <b>NACK</b>. The Recorder adds the reply to the history.", m: [["gw-onix", 1, 1], ["app-gw", 1, 1], ["onix-rec"], ["rec-redis"]] },
+    { t: "Onix passes the reply to the Mock, which runs the step's own check (L2). The website shows both steps as done.", m: [["onix-mock"], ["uib-mock"]] }
+  ]
+};
+let step = 0, playing = false, autoTimer = 0;
+function renderStep() {
+  const list = STEPS[role], s = list[step];
+  $("#sNum").textContent = "STEP " + (step + 1) + " OF " + list.length;
+  $("#sText").innerHTML = s.t;
+  $("#sBack").disabled = step === 0;
+  $("#sNext").textContent = step === list.length - 1 ? "Start again ↺" : "Next →";
+  $("#sTicks").innerHTML = list.map((_, i) => '<button type="button" class="' + (i === step ? "on" : i < step ? "seen" : "") + '" data-i="' + i + '" aria-label="Step ' + (i + 1) + '">' + (i + 1) + "</button>").join("");
+  map.showMoves(s.m);
+}
+function go(i) { const n = STEPS[role].length; step = (i + n) % n; renderStep(); }
+function stopAuto() { playing = false; clearInterval(autoTimer); $("#sAuto").textContent = "▶ Play all"; }
+$("#sNext").addEventListener("click", () => { stopAuto(); go(step + 1); });
+$("#sBack").addEventListener("click", () => { stopAuto(); go(step - 1); });
+$("#sTicks").addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) { stopAuto(); go(+b.dataset.i); } });
+$("#sAuto").addEventListener("click", () => {
+  if (playing) return stopAuto();
+  playing = true; $("#sAuto").textContent = "❚❚ Pause"; go(0);
+  autoTimer = setInterval(() => { if (step === STEPS[role].length - 1) return stopAuto(); go(step + 1); }, 4200);
+});
+addEventListener("keydown", e => {
+  if (mode !== "play") return;
+  const r = $("#map").getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
+  if (e.key === "ArrowRight") { stopAuto(); go(step + 1); }
+  if (e.key === "ArrowLeft") { stopAuto(); go(step - 1); }
+});
+function setMode(m) {
+  mode = m; stopAuto(); map.stop(); selected = null; map.clear();
+  $$('.seg [data-mode]').forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+  $("#panel").hidden = m !== "explore"; $("#playPanel").hidden = m !== "play";
+  $("#panelEmpty").hidden = false; $("#panelBody").hidden = true;
+  if (m === "play") go(0);
+}
+$$('.seg [data-mode]').forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+
+/* ---------- gates (real replies from the setup above) ---------- */
+const CASES = {
+  good:   { stop: 0, title: "ACK. Your app gets this reply in about 150 ms.", code: '{ "message": { "ack": { "status": "ACK" } } }', src: "The real reply to a correct search, shortened. The full reply also repeats the message's context." },
+  notest: { stop: 1, title: "NACK at gate 1: no test was waiting for this message (HTTP 412).", code: "No active expectation found for transaction ID: 4b391683-c83b-44ab-ac65-4d385ddcd0f1 and Subscriber URL: http://host.docker.internal:4100 for as a seller_np", src: "The search was sent before anyone pressed Start flow. This gate matters only when your app sends the first message." },
+  shape:  { stop: 2, title: "NACK at gate 2: a field has the wrong type.", code: "at '/message/catalog/bpp~1providers/0/categories/2': got string, want object", src: "An on_search where one list item was text instead of an object." },
+  rule:   { stop: 3, title: "NACK at gate 3: rule TAGS_BAP_TERMS_EFFECTIVE_DATE failed.", code: "All elements of $.message.intent.tags[?(@.code=='bap_terms')].list[?(@.code=='effective_date')].value must follow every regex in [\"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$\"]", src: "The search had effective_date \"2025-02-01T00:00:00Z\", with no milliseconds." },
+  sign:   { stop: 5, title: "NACK at gate 5: the signature does not match the key in the registry (HTTP 401).", code: "Signature Validation Error: failed to validate Authorization: sign validation failed: signature verification failed", src: "The search was signed with a key the registry does not have." }
+};
+const gates = $$(".gate", $("#gates")), runner = $("#runner");
+let gateToken = 0, gateAt = 0;
+function placeRunner(i) { gateAt = i; const g = gates[i]; runner.style.left = (g.offsetLeft + g.offsetWidth / 2 - 12) + "px"; }
+function runCase(key) {
+  const c = CASES[key], token = ++gateToken;
+  $$("#pick button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.case === key)));
+  gates.forEach(g => g.classList.remove("pass", "fail"));
+  runner.className = "runner"; placeRunner(0);
+  $("#answer").innerHTML = '<span class="note">Sending…</span>';
+  const failAt = c.stop === 0 ? -1 : c.stop - 1;
+  let i = 0;
+  const next = () => {
+    if (token !== gateToken) return;
+    placeRunner(i);
+    if (i === failAt) { gates[i].classList.add("fail"); runner.classList.add("bad"); return done(); }
+    gates[i].classList.add("pass");
+    if (i === gates.length - 1) { runner.classList.add("ok"); return done(); }
+    i++; setTimeout(next, reduced ? 0 : 420);
+  };
+  const done = () => {
+    $("#answer").innerHTML = '<div class="ttl">' + c.title + "</div><pre>" + WB.esc(c.code) + '</pre><div class="src">' + c.src + "</div>";
+  };
+  setTimeout(next, reduced ? 0 : 150);
+}
+$("#pick").addEventListener("click", e => { const b = e.target.closest("[data-case]"); if (b) runCase(b.dataset.case); });
+addEventListener("resize", () => placeRunner(gateAt));
+
+/* ---------- storage ---------- */
+const REDIS = [
+  { n: "Session", life: "48 hours", who: "Written by the UI Backend when you create a test. Read by every part: your app's URL, its role, the domain, and the step lists." },
+  { n: "Expectation", life: "5 minutes", who: "Written by the Mock when you press Start flow and your app goes first. Onix uses it once to link your app's first message to your test, then deletes it." },
+  { n: "Test history", life: "5 min after the last message", who: "Onix creates it. The Recorder adds every message to it. The Mock reads it to find the next step. If nothing happens for 5 minutes, it is deleted and the flow must be started again." },
+  { n: "Lock", life: "up to 5 hours", who: "The Mock sets it to WORKING before it sends a message. The Recorder sets it back to AVAILABLE once the message is sent. It stops the same step from being sent twice." },
+  { n: "Mock notes", life: "", who: "Values the Mock copies from earlier messages because later steps need them, for example the city from the search." },
+  { n: "Flow scripts", life: "no expiry", who: "A copy of each flow's scripts, taken from Config Service the first time the Mock needs them. It is kept until someone clears it." }
+];
+const MONGO = [
+  { n: "Specs", life: "kept", who: "Pushed to DB Service when a domain is built from the spec repo. Config Service reads them." },
+  { n: "Sessions", life: "kept", who: "A copy of each test session, sent by the UI Backend." },
+  { n: "Full messages", life: "kept", who: "Every message in full, saved by the Recorder through DB Service." }
+];
+const boxes = list => list.map(b => '<button type="button" class="box" aria-expanded="false"><span class="row"><b>' + b.n + "</b>" +
+  (b.life ? '<span class="life">' + b.life + "</span>" : "") + '</span><span class="more">' + b.who + "</span></button>").join("");
+$("#redisList").innerHTML = boxes(REDIS);
+$("#mongoList").innerHTML = boxes(MONGO);
+$("#shelves").addEventListener("click", e => {
+  const b = e.target.closest(".box"); if (b) b.setAttribute("aria-expanded", String(b.getAttribute("aria-expanded") !== "true"));
+});
+
+renderRole();
+requestAnimationFrame(() => runCase("good"));
+})();
+</script>
+</body>
+</html>

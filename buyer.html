@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workbench: Buyer App Test</title>
+<meta name="description" content="A buyer app test on the ONDC Protocol Workbench, step by step, with the real messages.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><i class="brand-mark" aria-hidden="true"></i><span>Protocol Workbench</span></div>
+    <nav class="pages" aria-label="Guide pages">
+      <a href="index.html">How it works</a>
+      <a href="buyer.html" aria-current="page">Buyer test</a>
+      <a href="seller.html">Seller test</a>
+      <a href="playground.html">Playground</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"></button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="rail" aria-label="On this page">
+    <ol id="rail">
+      <span class="fill" id="railFill"></span>
+      <li><a href="#top">The setup</a></li>
+      <li><a href="#walk">Step by step</a></li>
+      <li><a href="#result">The result</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <section id="top" class="hero">
+      <p class="kicker">Buyer app test</p>
+      <h1>Your app sends <span class="hl">search</span>. The workbench replies with <span class="hl">on_search</span>.</h1>
+      <p class="lead">Your app is the <button class="term" data-t="bap">BAP</button>, so the workbench plays the seller. Follow the 19 steps of one real test, with the real messages.</p>
+      <div class="setgrid rv">
+        <span><b>Domain</b>ONDC:RET11</span>
+        <span><b>Version</b>1.2.0</span>
+        <span><b>Use case</b>F&amp;B</span>
+        <span><b>Flow</b>Search_and_Custom_Menu_(Full_Catalog_City)</span>
+        <span><b>Steps in the flow</b>search → on_search</span>
+        <span><b>Your app</b>test-buyer.local at http://host.docker.internal:4100</span>
+      </div>
+    </section>
+
+    <section id="walk">
+      <p class="kicker">Step by step</p>
+      <h2>Press Next, or use the arrow keys.</h2>
+      <div class="phases" id="phases"></div>
+
+      <div class="walk">
+        <article class="card scard" id="scard" aria-live="polite">
+          <div class="shead"><span class="stepnum" id="sNum"></span><span class="who" id="sWho"></span></div>
+          <div id="sBody"></div>
+          <div class="data" id="sData"></div>
+          <div class="ctrlbar">
+            <button class="btn" id="sBack" type="button">← Back</button>
+            <button class="btn main" id="sNext" type="button">Next →</button>
+            <button class="btn" id="sAuto" type="button">▶ Play all</button>
+            <span class="count"><span class="kbd">←</span> <span class="kbd">→</span></span>
+          </div>
+        </article>
+
+        <div class="side-col">
+          <div class="card mini">
+            <svg id="mapSvg" viewBox="0 0 985 520" role="img" aria-label="Workbench map with the parts used in this step"></svg>
+          </div>
+          <div class="card mem">
+            <h4>What Redis holds now <span>changes light up</span></h4>
+            <div id="mem"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="result">
+      <p class="kicker">The result</p>
+      <h2>Both steps passed.</h2>
+      <div class="card done-card rv">
+        <div class="big">2 / 2</div>
+        <div>
+          <p style="margin:0">Your app's <code>search</code> passed every check (shape, rules, fit, signature). Your app then accepted the workbench's signed <code>on_search</code> with an ACK.</p>
+          <div class="statusrow" id="statusRow"></div>
+        </div>
+      </div>
+      <div class="next">
+        <a class="card go" href="index.html"><b>← How it works</b><small>The parts, the checks, and where data is kept.</small></a>
+        <a class="card go" href="seller.html"><b>Seller app test →</b><small>The workbench sends search, your app replies with on_search.</small></a>
+        <a class="card go" href="playground.html"><b>Playground →</b><small>Write your own flow in the browser, then run it against a real app.</small></a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/buyer-data.js"></script>
+<script>
+(() => {
+"use strict";
+const B = window.BUYER;
+const T = (k, w) => '<button class="term" data-t="' + k + '">' + w + "</button>";
+
+const PHASES = [
+  { name: "Set up", from: 0, to: 2 },
+  { name: "Start", from: 3, to: 3 },
+  { name: "Your app sends search", from: 4, to: 10 },
+  { name: "The workbench replies", from: 11, to: 18 }
+];
+
+// m = map moves [edge, reverse?, answer colour?]; mem = what changes in Redis; d = data tabs
+const STEPS = [
+  { who: "you", title: "You create a test session",
+    lines: ["On Scenario Testing you enter your app's URL, pick ONDC:RET11, 1.2.0, F&amp;B, and the role BAP.",
+            "The website sends this to the UI Backend. The reply is 201 with a new session id."],
+    m: [["you-ui"], ["ui-uib"]],
+    d: [["Request", B.sessionReq, "POST localhost:3034/sessions"], ["Reply", B.sessionResp, "HTTP 201"]] },
+  { who: "wb", title: "The UI Backend gets the step lists",
+    lines: ["Config Service reads the RET11 1.2.0 spec from DB Service.",
+            "10 flows come back. This test uses one of them. It has 2 steps: <code>search</code> (owner BAP) and <code>on_search</code> (owner BPP)."],
+    m: [["uib-cfg"], ["cfg-db"]],
+    d: [["The flow used", B.flow, "Each step has an owner. The owner sends that step."]] },
+  { who: "wb", title: "The UI Backend saves the session",
+    lines: ["The session is saved in Redis for 48 hours, with a copy in DB Service.",
+            "Every part can now read your role, your app's URL and the step lists."],
+    m: [["uib-redis"]], mem: { session: "BAP · http://host.docker.internal:4100 · 10 flows" },
+    d: [["Session", B.session, "Trimmed: the real session holds the step lists of all 10 flows."]] },
+  { who: "you", title: "You press Start flow. The Mock waits for your app",
+    lines: ["The UI Backend asks the Mock to start the flow.",
+            "The Mock reads the " + T("history", "history") + ": empty. The first step, <code>search</code>, belongs to the BAP. That is your app, so the Mock sends nothing.",
+            "It writes an " + T("expectation", "expectation") + ": the next <code>search</code> from your app's URL belongs to this test. It is valid for 5 minutes."],
+    m: [["you-ui"], ["ui-uib"], ["uib-mock"], ["mock-redis"]],
+    mem: { exp: "waiting for search · expires in 5 min" },
+    d: [["Request", B.startReq, "The website also sends a transaction id. It is not used, because your app brings its own."], ["Reply", B.startResp], ["Expectation", B.expectation, "Saved in Redis under your app's URL."]] },
+  { who: "app", title: "Your app sends a signed search",
+    lines: ["It posts to <code>localhost:3032/api-service/ONDC:RET11/1.2.0/seller/search</code>. This is the seller door, because to your app the workbench is the seller.",
+            "Your app made a new " + T("txn", "transaction id") + " (<code>6ca121c1…</code>) and " + T("msgid", "message id") + " (<code>37301506…</code>).",
+            "The gateway passes it to the RET11 1.2.0 Onix container."],
+    m: [["app-gw"], ["gw-onix"]],
+    d: [["Message", B.searchBody], ["Headers", B.searchHeaders, "The Authorization header holds your app's " + "signature."]] },
+  { who: "wb", title: "Onix links the message to your test",
+    lines: ["The transaction id is new, so Onix looks for an expectation for your app's URL.",
+            "It finds one, takes its session and flow, and deletes it.",
+            "It adds the transaction to your session and creates an empty history."],
+    m: [["onix-redis"]],
+    mem: { exp: "used, then deleted", session: "BAP · http://host.docker.internal:4100 · 10 flows · + transaction 6ca121c1…", hist: "created, empty" },
+    d: [["Expectation found", B.expectation, "Onix uses it once, then deletes it."]] },
+  { who: "wb", title: "Onix checks the message",
+    lines: ["Shape: the right fields and types. Passed.",
+            "Rules: the " + T("l1", "L1 rules") + " for RET11 1.2.0. Passed.",
+            "Fit: the right step for this test. Passed.",
+            "Signature: Onix gets your app's public key from the " + T("registry", "registry") + " and checks the " + T("signature", "signature") + ". Passed."],
+    m: [["onix-reg"]],
+    d: [["Registry lookup", B.lookupReq, "POST /v2.0/lookup. A local stand-in registry answered in this run."], ["Registry reply", B.lookupResp]] },
+  { who: "wb", title: "Your app gets an ACK",
+    lines: ["About 150 ms after sending.",
+            T("ack", "ACK") + " only means: received and valid. The real answer comes later, as a separate message to your app."],
+    m: [["gw-onix", 1, 1], ["app-gw", 1, 1]],
+    d: [["ACK", B.searchAck, "The reply to your app's search."]] },
+  { who: "wb", title: "The Recorder writes it down",
+    lines: ["Onix sends the message to the Recorder.",
+            "The Recorder adds <code>search</code> to the history. The full message is saved in DB Service."],
+    m: [["onix-rec"], ["rec-redis"]],
+    mem: { hist: "1 message: search (ACK)" },
+    d: [["History", B.histSearch, "Trimmed: only ids and the ACK. Full messages live in DB Service."]] },
+  { who: "wb", title: "Onix hands the search to the Mock",
+    lines: ["In the background, Onix posts the search to the Mock: <code>/mock/ONDC:RET11/1.2.0/manual/search</code>.",
+            "Your app already has its ACK and does not wait for this."],
+    m: [["onix-mock"]] },
+  { who: "wb", title: "The Mock checks the search and takes notes",
+    lines: ["It replays the history: <code>search</code> is done.",
+            "It runs the search step's <code>validate()</code> script, the " + T("l2", "L2 check") + ": valid.",
+            "It copies values that later steps need into its " + T("notes", "notes") + ", like city <code>std:080</code>."],
+    m: [["mock-redis"]],
+    mem: { notes: "city std:080 · bapId · bapUri · message id" },
+    d: [["Mock notes", B.notesSearch]] },
+  { who: "wb", title: "The Mock needs one value from you",
+    lines: ["The next step, <code>on_search</code>, belongs to the seller: the workbench.",
+            "Its script needs <code>area_code</code>, which a person must type. So nothing is sent yet.",
+            "The flow status becomes INPUT-REQUIRED."],
+    m: [["onix-mock", 1, 1]],
+    d: [["Mock's answer", B.needsInput, "This answer goes back to Onix, which only logs it."]] },
+  { who: "wb", title: "The website shows a form",
+    lines: ["The website asks for the status every few seconds (UI Backend → Mock).",
+            "The Mock replays the history and reports <code>on_search</code> as INPUT-REQUIRED.",
+            "A form with one field opens: <code>area_code</code>."],
+    m: [["ui-uib"], ["uib-mock"]],
+    d: [["Status", B.statusInput]] },
+  { who: "you", title: "You submit area_code = 144203",
+    lines: ["The UI Backend passes it to the Mock (<code>/flows/proceed</code>).",
+            "The Mock sets the " + T("lock", "lock") + " to WORKING, so this step cannot be sent twice.",
+            "It queues a job to build the message and answers at once."],
+    m: [["you-ui"], ["ui-uib"], ["uib-mock"], ["mock-redis"]],
+    mem: { lock: "W" },
+    d: [["Request", B.proceedReq, "POST localhost:3034/flow/proceed"], ["Reply", B.proceedResp]] },
+  { who: "wb", title: "The Mock builds on_search",
+    lines: ["The on_search script starts from a sample catalog.",
+            "It fills in values from your search and your input: city <code>std:080</code>, the same message id, and area code <code>144203</code>.",
+            "The Mock saves its own id and URL into its notes."],
+    m: [["mock-redis"]],
+    mem: { notes: "city std:080 · bapId · bapUri · message id · + bppId api-service:80 · bppUri" },
+    d: [["on_search", B.onSearch, "Trimmed: 1 store and 2 of its 29 items."], ["Mock notes", B.notesOnSearch]] },
+  { who: "wb", title: "The Mock sends it through Onix",
+    lines: ["The Mock posts it to the gateway's <code>/mock/</code> door, with your app's URL, the flow id and the session id.",
+            "Onix checks its shape and signs it with the workbench key."],
+    m: [["mock-gw"], ["gw-onix"]],
+    d: [["Workbench signature", B.onSearchAuth, "The Authorization header Onix added. keyId starts with api-service:80."]] },
+  { who: "app", title: "Your app receives on_search and answers ACK",
+    lines: ["Onix delivers it to <code>http://host.docker.internal:4100/on_search</code> and waits for your app's answer.",
+            "Your app checks the workbench's signature: valid. " + B.onSearchItems + " items arrived.",
+            "Your app answers ACK."],
+    m: [["gw-onix", 1], ["app-gw", 1], ["app-gw", 0, 1]],
+    d: [["Your app's ACK", B.onSearchAck]] },
+  { who: "wb", title: "The Recorder writes it down and frees the lock",
+    lines: ["<code>on_search</code> is added to the history.",
+            "The lock goes back to AVAILABLE, 75 ms after it was set.",
+            "The full message is saved in DB Service."],
+    m: [["onix-rec"], ["rec-redis"]],
+    mem: { hist: "2 messages: search (ACK) · on_search (ACK)", lock: "A" },
+    d: [["History", B.histOnSearch, "Trimmed: only ids and the ACKs."], ["Lock", { status: "AVAILABLE" }]] },
+  { who: "wb", title: "The website shows 100%",
+    lines: ["The next status check finds both steps in the history, in the right order.",
+            "<code>search</code>: COMPLETE, SUCCESS. <code>on_search</code>: COMPLETE, SUCCESS."],
+    m: [["ui-uib"], ["uib-mock"]],
+    d: [["Status", B.statusDone]] }
+];
+
+window.WALK = { phases: PHASES, steps: STEPS, done: B.statusDone };
+})();
+</script>
+<script src="assets/walk.js"></script>
+</body>
+</html>

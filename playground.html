@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workbench: Playground</title>
+<meta name="description" content="The Protocol Workbench Playground, step by step: write a flow in the browser, try it, then run it live against a real app.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><i class="brand-mark" aria-hidden="true"></i><span>Protocol Workbench</span></div>
+    <nav class="pages" aria-label="Guide pages">
+      <a href="index.html">How it works</a>
+      <a href="buyer.html">Buyer test</a>
+      <a href="seller.html">Seller test</a>
+      <a href="playground.html" aria-current="page">Playground</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"></button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="rail" aria-label="On this page">
+    <ol id="rail">
+      <span class="fill" id="railFill"></span>
+      <li><a href="#top">The setup</a></li>
+      <li><a href="#walk">Step by step</a></li>
+      <li><a href="#result">The result</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <section id="top" class="hero">
+      <p class="kicker">Playground</p>
+      <h1>Write your own flow. Try it in the browser. Then run it live.</h1>
+      <p class="lead">The Playground (<code>localhost:3035/playground</code>) lets you write a flow yourself: its steps, a sample message for each step, and the small scripts that build and check messages. Follow the 14 steps of one real run.</p>
+      <div class="setgrid rv">
+        <span><b>Domain</b>ONDC:RET11</span>
+        <span><b>Version</b>1.2.0</span>
+        <span><b>Flow ID (your own)</b>Playground_Demo_Search</span>
+        <span><b>Steps in the flow</b>search → on_search</span>
+        <span><b>Live test against</b>test-seller.local at http://host.docker.internal:4200 (BPP)</span>
+      </div>
+    </section>
+
+    <!-- <section id="diff">
+      <p class="kicker">What is different</p>
+      <h2>Same workbench. Seven differences.</h2>
+      <p class="lead">Click a row to see where it happens in the steps below.</p>
+      <div class="card cmp rv">
+        <div class="cmp-row cmp-head"><span></span><span>Scenario Testing</span><span>Playground</span></div>
+        <button type="button" class="cmp-row" data-jump="1"><span>Where the flow comes from</span><span>The domain's spec, built and published</span><span>You write it in the browser</span></button>
+        <button type="button" class="cmp-row" data-jump="4"><span>Trying it first</span><span>Not possible</span><span>Scripts run in your browser, no server</span></button>
+        <button type="button" class="cmp-row" data-jump="10"><span>Where the Mock reads the flow</span><span>The spec's flow, cached in Redis</span><span><code>PLAYGROUND_&lt;session id&gt;</code> in Redis, 48 hours</span></button>
+        <button type="button" class="cmp-row" data-jump="9"><span>Use case</span><span>For example <code>F&amp;B</code></span><span><code>PLAYGROUND-FLOW</code></span></button>
+        <button type="button" class="cmp-row" data-jump="10"><span>Mock address</span><span><code>/mock/ONDC:RET11/1.2.0/…</code></span><span><code>/mock/playground/…</code></span></button>
+        <button type="button" class="cmp-row" data-jump="12"><span>Signature check on your app's messages</span><span>On</span><span>Off</span></button>
+        <button type="button" class="cmp-row" data-jump="6"><span>L1 rules check</span><span>Always on</span><span>In the browser: only when you click L1 Validation. Live: on</span></button>
+      </div>
+    </section> -->
+
+    <section id="walk">
+      <p class="kicker">Step by step</p>
+      <h2>Press Next, or use the arrow keys.</h2>
+      <div class="phases" id="phases"></div>
+
+      <div class="walk">
+        <article class="card scard" id="scard" aria-live="polite">
+          <div class="shead"><span class="stepnum" id="sNum"></span><span class="who" id="sWho"></span></div>
+          <div id="sBody"></div>
+          <div class="data" id="sData"></div>
+          <div class="ctrlbar">
+            <button class="btn" id="sBack" type="button">← Back</button>
+            <button class="btn main" id="sNext" type="button">Next →</button>
+            <button class="btn" id="sAuto" type="button">▶ Play all</button>
+            <span class="count"><span class="kbd">←</span> <span class="kbd">→</span></span>
+          </div>
+        </article>
+
+        <div class="side-col">
+          <div class="card mini">
+            <svg id="mapSvg" viewBox="0 0 985 520" role="img" aria-label="Workbench map with the parts used in this step"></svg>
+          </div>
+          <div class="card mem">
+            <h4>What is stored now <span>changes light up</span></h4>
+            <div id="mem"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="result">
+      <p class="kicker">The result</p>
+      <h2>Your own flow ran live against a real app.</h2>
+      <div class="card done-card rv">
+        <div class="big">2 / 2</div>
+        <div>
+          <p style="margin:0">The Mock ran your scripts, not the spec's. The seller app accepted your <code>search</code> and its <code>on_search</code> passed. About 1.7 seconds from Start flow to the seller app's ACK.</p>
+          <div class="statusrow" id="statusRow"></div>
+        </div>
+      </div>
+      <div class="next">
+        <a class="card go" href="index.html"><b>← How it works</b><small>The parts, the checks, and where data is kept.</small></a>
+        <a class="card go" href="buyer.html"><b>Buyer app test</b><small>Your app sends search, the workbench replies with on_search.</small></a>
+        <a class="card go" href="seller.html"><b>Seller app test</b><small>The workbench sends search, your app replies with on_search.</small></a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/playground-data.js"></script>
+<script>
+(() => {
+"use strict";
+const P = window.PLAY;
+const T = (k, w) => '<button class="term" data-t="' + k + '">' + w + "</button>";
+
+const PHASES = [
+  { name: "Write the flow", from: 0, to: 2 },
+  { name: "Try it in the browser", from: 3, to: 7 },
+  { name: "Run it live", from: 8, to: 10 },
+  { name: "The app replies", from: 11, to: 13 }
+];
+
+const STEPS = [
+  { who: "you", title: "You start a new flow",
+    lines: ["On the Playground page you pick the domain <code>ONDC:RET11</code>, the version <code>1.2.0</code>, and a Flow ID: <code>Playground_Demo_Search</code>.",
+            "The flow is kept only in your browser (localStorage). Nothing is sent to any service."],
+    m: [["you-ui"]],
+    mem: { browser: "flow Playground_Demo_Search · 0 steps" },
+    d: [["Flow info", P.meta]] },
+  { who: "you", title: "You add two steps",
+    lines: ["<code>search</code> (owner BAP) and <code>on_search</code> (owner BPP).",
+            "On <code>on_search</code> you set \"Response For\" to <code>search</code>, so it reuses search's " + T("msgid", "message id") + ".",
+            "Each step has five parts: <code>generator.js</code> (builds the message), <code>validator.js</code> (the " + T("l2", "L2 check") + "), <code>requirements.js</code> (is this step allowed yet?), <code>defaultPayload.json</code> (sample message) and <code>inputs.json</code> (a form for you; <code>{}</code> means no form)."],
+    m: [["you-ui"]],
+    mem: { browser: "flow Playground_Demo_Search · 2 steps" },
+    d: [["Steps", P.steps], ["Parts of a step", P.parts]] },
+  { who: "you", title: "You give each step a real sample message",
+    lines: ["<code>search</code> gets the spec's sample search. <code>on_search</code> gets a real catalog.",
+            "<code>inputs.json</code> is <code>{}</code> for both, so no form opens when a step runs."],
+    m: [["you-ui"]],
+    d: [["search sample", P.searchSample, "defaultPayload.json of the search step."]] },
+  { who: "you", title: "Run next step: your browser builds search",
+    lines: ["You click <b>Run next step</b>. Everything happens inside your browser. No request is sent.",
+            "The browser takes the sample message and gives it a new <code>context</code> (the message header), with a new message id <code>c0df455b…</code>.",
+            "Then it runs your <code>generator.js</code>. The finished search appears in the Output Payload tab."],
+    m: [["you-ui"]],
+    mem: { browser: "flow · 2 steps · history: search" },
+    d: [["New context", P.ctxSearch, "Network requests made by the page for this step: 0."]] },
+  { who: "you", title: "Run next step: your browser builds on_search",
+    lines: ["It uses the same message id as the search, <code>c0df455b…</code>, because <code>on_search</code> answers <code>search</code>."],
+    m: [["you-ui"]],
+    mem: { browser: "flow · 2 steps · history: search, on_search" },
+    d: [["New context", P.ctxOnSearch]] },
+  { who: "you", title: "L1 Validation on search: NACK",
+    lines: ["You click <b>L1 Validation</b>. The UI Backend sends the message through the gateway to Onix's <code>/test/</code> door.",
+            "This door only checks the shape and the " + T("l1", "L1 rules") + ". No signature check, and nothing is saved.",
+            "Rule <code>TAGS_BAP_TERMS_EFFECTIVE_DATE</code> failed: the sample date had no milliseconds."],
+    m: [["you-ui"], ["ui-uib"], ["uib-gw"], ["gw-onix"], ["gw-onix", 1, 1], ["uib-gw", 1, 1]],
+    d: [["Onix's answer", P.l1Nack, "POST localhost:3034/flow/validate/search. Shortened: the real reply has the same rule text in markdown, plus a link to the rules guide."]] },
+  { who: "you", title: "You fix generator.js. L1 passes",
+    lines: ["Your generator now sets the date with milliseconds.",
+            "You run the steps again: new message id <code>0343d283…</code>, date <code>" + P.fixedRun.search.effective_date + "</code>.",
+            "L1 Validation now answers " + T("ack", "ACK") + "."],
+    m: [["ui-uib"], ["uib-gw"], ["gw-onix"], ["gw-onix", 1, 1], ["uib-gw", 1, 1]],
+    d: [["generator.js", P.generateFixed], ["Onix's answer", P.l1AckSearch]] },
+  { who: "you", title: "on_search: L1 passes, L2 passes",
+    lines: ["L1 goes to Onix as before: ACK.",
+            "L2 Validation runs your <code>validator.js</code> in the browser: Passed, \"Valid request\". No request is sent for L2."],
+    m: [["ui-uib"], ["uib-gw"], ["gw-onix"], ["gw-onix", 1, 1], ["uib-gw", 1, 1]],
+    d: [["L1 answer", P.l1AckOnSearch], ["L2 result", P.l2]] },
+  { who: "you", title: "You create a live session",
+    lines: ["Edit menu → <b>Create live session</b>, with the app's URL <code>http://host.docker.internal:4200</code> and the role BPP.",
+            "The UI Backend saves two things in Redis, each for 48 hours: the " + T("session", "session") + " (use case <code>PLAYGROUND-FLOW</code>, signature check off) and your flow (<code>PLAYGROUND_&lt;session id&gt;</code>).",
+            "A new tab opens. From here it looks like Scenario Testing."],
+    m: [["you-ui"], ["ui-uib"], ["uib-redis"]],
+    mem: { session: "BPP · :4200 · PLAYGROUND-FLOW · signature check off", pg: "PLAYGROUND_kYl08Pu… · your 2 steps" },
+    d: [["Reply", P.createResp, "POST localhost:3034/sessions/playground · HTTP 201"], ["Session", P.session, "headerValidaton: false means the signature check is off."]] },
+  { who: "you", title: "Start flow: the Mock runs your scripts",
+    lines: ["The UI Backend calls the Mock at <code>/mock/playground/flows/new</code>, not <code>/mock/ONDC:RET11/1.2.0/…</code>.",
+            "The Mock sets the " + T("lock", "lock") + " to WORKING and reads your flow from Redis (<code>PLAYGROUND_…</code>), not the spec's flow.",
+            "It runs your <code>generate()</code> for search. The date in the search is the current time, from your generator."],
+    m: [["you-ui"], ["ui-uib"], ["uib-mock"], ["mock-redis"]],
+    mem: { lock: "W" },
+    d: [["Request", P.startReq, "POST localhost:3034/flow/new"], ["Reply", P.startResp]] },
+  { who: "wb", title: "Onix signs and delivers the search. The app answers ACK",
+    lines: ["Same as the seller test, steps 6 to 9: the Mock sends the search through the gateway to Onix.",
+            "Onix links the new " + T("txn", "transaction") + " (<code>4ce8d04a…</code>) to the session, signs the message and delivers it to the app. The app checks the signature and answers ACK.",
+            "The Recorder adds the search to the history and sets the lock back to AVAILABLE."],
+    m: [["mock-gw"], ["gw-onix"], ["onix-redis"], ["gw-onix", 1], ["app-gw", 1], ["onix-rec"], ["rec-redis"]],
+    mem: { session: "BPP · :4200 · PLAYGROUND-FLOW · signature check off · + transaction 4ce8d04a…", hist: "1 message: search (ACK)", lock: "A" },
+    d: [["search", P.search, "The search the app received."], ["Lock changes", P.lockSets]] },
+  { who: "app", title: "The app sends on_search. The signature check is skipped",
+    lines: ["The app posts its signed <code>on_search</code> to the <code>/buyer/</code> door.",
+            "Onix runs the shape, rules and fit checks as usual.",
+            "It skips the " + T("signature", "signature") + " check, because this session was created with it turned off. So there is no registry lookup.",
+            "The app gets an ACK."],
+    m: [["app-gw"], ["gw-onix"], ["onix-redis"], ["gw-onix", 1, 1], ["app-gw", 1, 1]],
+    d: [["ACK", P.onSearchAck]] },
+  { who: "wb", title: "Onix hands it to the Mock's Playground address",
+    lines: ["The Recorder adds <code>on_search</code> to the history.",
+            "Onix posts it to <code>/mock/playground/manual/on_search</code>.",
+            "The Mock runs your <code>validate()</code> for on_search and finds no more steps."],
+    m: [["onix-rec"], ["rec-redis"], ["onix-mock"]],
+    mem: { hist: "2 messages: search (ACK) · on_search (ACK)" } },
+  { who: "wb", title: "The website shows 100%",
+    lines: ["Both steps are COMPLETE with SUCCESS.",
+            "About 1.7 seconds from Start flow to the app's ACK of on_search."],
+    m: [["ui-uib"], ["uib-mock"]],
+    d: [["Status", P.statusDone]] }
+];
+
+window.WALK = {
+  phases: PHASES, steps: STEPS, done: P.statusDone,
+  memRows: [["browser", "Your browser"], ["session", "Session"], ["pg", "Your flow in Redis"], ["hist", "History"], ["lock", "Lock"]]
+};
+
+// comparison rows jump to the matching step
+document.querySelectorAll(".cmp-row[data-jump]").forEach(b => b.addEventListener("click", () => {
+  WB.walkGo(+b.dataset.jump);
+}));
+})();
+</script>
+<script src="assets/walk.js"></script>
+</body>
+</html>
